@@ -1,0 +1,85 @@
+name: Build Stream Deck Plugin
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run TypeScript type checking
+      run: npx tsc --noEmit
+      continue-on-error: true
+
+    - name: Build plugin
+      run: npm run build
+
+    - name: Verify build outputs
+      run: |
+        echo "Checking build outputs..."
+        if [ ! -f "com.eeko.eeko.sdPlugin/bin/plugin.js" ]; then
+          echo "Error: plugin.js not found in build output"
+          exit 1
+        fi
+        echo "✅ Build output verified"
+        ls -la com.eeko.eeko.sdPlugin/bin/
+
+    - name: Check manifest.json
+      run: |
+        echo "Validating manifest.json..."
+        if [ ! -f "com.eeko.eeko.sdPlugin/manifest.json" ]; then
+          echo "Error: manifest.json not found"
+          exit 1
+        fi
+        echo "✅ Manifest found"
+        cat com.eeko.eeko.sdPlugin/manifest.json | python3 -m json.tool > /dev/null
+        echo "✅ Manifest JSON is valid"
+
+    - name: Archive plugin
+      if: github.event_name == 'push' && matrix.node-version == '20.x'
+      run: |
+        cd com.eeko.eeko.sdPlugin
+        zip -r ../eeko-streamdeck-plugin.streamDeckPlugin .
+        cd ..
+        echo "📦 Plugin archived as eeko-streamdeck-plugin.streamDeckPlugin"
+
+    - name: Upload plugin artifact
+      if: github.event_name == 'push' && matrix.node-version == '20.x'
+      uses: actions/upload-artifact@v4
+      with:
+        name: streamdeck-plugin
+        path: eeko-streamdeck-plugin.streamDeckPlugin
+        retention-days: 30
+
+    - name: Create Release Draft
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.node-version == '20.x'
+      uses: softprops/action-gh-release@v1
+      with:
+        draft: true
+        generate_release_notes: true
+        files: eeko-streamdeck-plugin.streamDeckPlugin
+        tag_name: v${{ github.run_number }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      continue-on-error: true

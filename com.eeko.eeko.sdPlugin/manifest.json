@@ -1,0 +1,46 @@
+{
+	"Name": "Eeko",
+	"Version": "1.0.0.0",
+	"Author": "Eeko",
+	"Actions": [
+		{
+			"Name": "Trigger Automation",
+			"UUID": "com.eeko.eeko.trigger-automation",
+			"Icon": "imgs/actions/automation/icon",
+			"Tooltip": "Triggers an Eeko automation",
+			"PropertyInspectorPath": "ui/trigger-automation.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/automation/key",
+					"TitleAlignment": "bottom"
+				}
+			]
+		}
+	],
+	"Category": "Eeko",
+	"CategoryIcon": "imgs/plugin/category-icon",
+	"CodePath": "bin/plugin.js",
+	"Description": "Trigger Eeko automations directly from your StreamDeck!",
+	"Icon": "imgs/plugin/marketplace",
+	"SDKVersion": 2,
+	"Software": {
+		"MinimumVersion": "6.5"
+	},
+	"OS": [
+		{
+			"Platform": "mac",
+			"MinimumVersion": "12"
+		},
+		{
+			"Platform": "windows",
+			"MinimumVersion": "10"
+		}
+	],
+	"Nodejs": {
+		"Version": "20"
+	},
+	"UUID": "com.eeko.eeko"
+}
